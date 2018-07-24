@@ -37,20 +37,51 @@ npm i --save-dev electron-wix-msi
 
 ## Usage
 
+First create electron package
+```javascript
+`rimraf ${path} \
+  && cross-env NODE_ENV=production \
+  && electron-packager ./ ${appname} \
+  --platform=${platform} \
+  --arch=${arch} \
+  --win32metadata.FileDescription='' \
+  --overwrite  \
+  --ignore=node_modules/electron-* \
+  --ignore=node_modules/.bin \
+  --ignore=.git \
+  --ignore=dist \
+  --ignore=build \
+  --no-prune \
+  --out=dist \
+  --icon=assets/app-icon/win/${appname}/app.ico \
+  --asar`
+```
+Download [wixtool wix311](https://github.com/wixtoolset/wix3/releases/download/wix3111rtm/wix311-binaries.zip) , then unzip this file , in windows add this ``wix311-binaries`` path to window path.
+```
+...;C:\resource\wix311
+```
+
 Creating an installer is a three-step process:
 
 ```js
 import { MSICreator } from 'electron-wix-msi';
-
+import path from 'path'
 // Step 1: Instantiate the MSICreator
 const msiCreator = new MSICreator({
-  appDirectory: '/path/to/built/app',
-  description: 'My amazing Kitten simulator',
-  exe: 'kittens',
-  name: 'Kittens',
-  manufacturer: 'Kitten Technologies',
+  appDirectory: path.resolve('/path/to/built/app'),
+  description: 'My amazing Natuka simulator',
+  exe: 'natuka',
+  name: 'Natuka',
+  language: 2052, // 2052 zh-CN, default en-us
+  manufacturer: 'Natuka Technologies',
   version: '1.1.2',
-  outputDirectory: '/path/to/output/folder'
+  ui: {
+  	images: '',
+  	template: true, 
+    chooseDirectory: true,
+    license: true
+  },
+  outputDirectory: path.resolve('/path/to/output/folder')
 });
 
 // Step 2: Create a .wxs template file
@@ -59,6 +90,17 @@ await msiCreator.create();
 // Step 3: Compile the template to a .msi file
 await msiCreator.compile();
 ```
+
+Warning
+```javascript
+appDirectory and outputDirectory must be fullpath, like this
+const path = require('path')
+path.resolve('./dist/electron-packaged')
+
+```
+
+[wix language](http://wp.sd-technologies.de/wix-toolset-tutorial/index.php?site=wix12)
+
 
 ### Configuration
 
