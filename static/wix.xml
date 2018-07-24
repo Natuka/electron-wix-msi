@@ -13,6 +13,7 @@
     <Package InstallerVersion="405"
              Compressed="yes"
              InstallScope="perMachine"
+             Languages="{{Language}}"
              Comments="Windows Installer Package"/>
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
 
