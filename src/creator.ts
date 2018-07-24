@@ -14,6 +14,10 @@ const getTemplate = (name: string) => fs.readFileSync(path.join(__dirname, `../s
 const ROOTDIR_NAME = 'APPLICATIONROOTDIRECTORY';
 const debug = require('debug')('electron-wix-msi');
 
+const DEFAULT_LANGUAGE = 1033
+const DEFAULT_CULTURES = 'en-us'
+
+
 export interface MSICreatorOptions {
   appDirectory: string;
   appUserModelId?: string;
@@ -57,6 +61,7 @@ export class MSICreator {
   public wixTemplate = getTemplate('wix');
   public uiTemplate = getTemplate('ui');
   public uiDirTemplate = getTemplate('ui-choose-dir');
+  public uiDirWithLicenseTemplate = getTemplate('ui-choose-dir-with-license');
   public propertyTemplate = getTemplate('property');
 
   // State, overwritable beteween steps
@@ -88,12 +93,15 @@ export class MSICreator {
   private components: Array<Component> = [];
 
   constructor(options: MSICreatorOptions) {
+    // appDirectory and outputDirectory must be fullpath!!!
     this.appDirectory = path.normalize(options.appDirectory);
     this.certificateFile = options.certificateFile;
     this.certificatePassword = options.certificatePassword;
     this.description = options.description;
     this.exe = options.exe.replace(/\.exe$/, '');
-    this.language = options.language || 1033;
+
+    // set language (http://wp.sd-technologies.de/wix-toolset-tutorial/index.php?site=wix12)
+    this.language = options.language || DEFAULT_LANGUAGE;
     this.manufacturer = options.manufacturer;
     this.name = options.name;
     this.outputDirectory = options.outputDirectory;
@@ -103,6 +111,7 @@ export class MSICreator {
     this.signWithParams = options.signWithParams;
     this.upgradeCode = options.upgradeCode || uuid();
     this.version = options.version;
+    this.cultures = options.cultures || DEFAULT_CULTURES;
 
     this.appUserModelId = options.appUserModelId
       || `com.squirrel.${this.shortName}.${this.exe}`;
@@ -226,8 +235,10 @@ export class MSICreator {
     const input = type === 'msi'
       ? path.join(cwd, `${path.basename(this.wxsFile, '.wxs')}.wixobj`)
       : this.wxsFile;
+    // use ui and set language
+    // see http://wixtoolset.org/documentation/manual/v3/wixui/wixui_localization.html
     const preArgs = this.ui
-      ? [ '-ext', 'WixUIExtension' ]
+      ? ['-ext', 'WixUIExtension', `-cultures:${this.cultures}`]
       : [];
 
     const { code, stderr, stdout } = await spawnPromise(binary, [ ...preArgs, input ], {
@@ -288,10 +299,13 @@ export class MSICreator {
     }
 
     if (typeof this.ui === 'object' && this.ui !== 'null') {
-      const { images, template, chooseDirectory } = this.ui;
+      const { images, template, chooseDirectory, license } = this.ui;
       const propertiesXml = this.getUIProperties(this.ui);
       const uiTemplate = template || chooseDirectory
-        ? this.uiDirTemplate
+        ? license ?
+            this.uiDirWithLicenseTemplate 
+            :
+            this.uiDirTemplate
         : this.uiTemplate;
 
       xml = replaceInString(uiTemplate, {
