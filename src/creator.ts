@@ -36,12 +36,14 @@ export interface MSICreatorOptions {
   signWithParams?: string;
   certificateFile?: string;
   certificatePassword?: string;
+  cultures?: string;
 }
 
 export interface UIOptions {
   chooseDirectory?: boolean;
   template?: string;
   images?: UIImages;
+  license?: boolean;
 }
 
 export interface UIImages {
@@ -84,6 +86,7 @@ export class MSICreator {
   public certificateFile?: string;
   public certificatePassword?: string;
   public signWithParams?: string;
+  public cultures?: string;
 
   public ui: UIOptions | boolean;
 
