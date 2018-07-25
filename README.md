@@ -32,7 +32,7 @@ line tools are required. If you are using AppVeyor or another Windows CI system,
 it is likely already installed.
 
 ```
-npm i --save-dev electron-wix-msi
+npm i --save-dev electron-wix-msi-n
 ```
 
 ## Usage
