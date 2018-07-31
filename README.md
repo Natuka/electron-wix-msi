@@ -81,7 +81,8 @@ const msiCreator = new MSICreator({
     chooseDirectory: true,
     license: true
   },
-  outputDirectory: path.resolve('/path/to/output/folder')
+  outputDirectory: path.resolve('/path/to/output/folder'),
+  desktop: true // create desktop shortcut
 });
 
 // Step 2: Create a .wxs template file

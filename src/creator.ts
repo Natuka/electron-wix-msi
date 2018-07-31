@@ -37,6 +37,7 @@ export interface MSICreatorOptions {
   certificateFile?: string;
   certificatePassword?: string;
   cultures?: string;
+  desktop?: boolean;
 }
 
 export interface UIOptions {
@@ -66,6 +67,10 @@ export class MSICreator {
   public uiDirWithLicenseTemplate = getTemplate('ui-choose-dir-with-license');
   public propertyTemplate = getTemplate('property');
 
+  public desktopShortcutDirectoryTemplate = getTemplate('desktop-shortcut-directory');
+  public desktopShortcutComponentRefTemplate = getTemplate('desktop-shortcut-component-ref');
+
+
   // State, overwritable beteween steps
   public wxsFile: string = '';
 
@@ -94,6 +99,7 @@ export class MSICreator {
   private directories: Array<string> = [];
   private tree: FileFolderTree;
   private components: Array<Component> = [];
+  private desktop?: boolean;
 
   constructor(options: MSICreatorOptions) {
     // appDirectory and outputDirectory must be fullpath!!!
@@ -120,6 +126,7 @@ export class MSICreator {
       || `com.squirrel.${this.shortName}.${this.exe}`;
 
     this.ui = options.ui !== undefined ? options.ui : false;
+    this.desktop = options.desktop || false;
   }
 
   /**
@@ -197,7 +204,9 @@ export class MSICreator {
       '{{Version}}': this.version,
       '<!-- {{ComponentRefs}} -->': componentRefs.map(({ xml }) => xml).join('\n'),
       '<!-- {{Directories}} -->': directories,
-      '<!-- {{UI}} -->': this.getUI()
+      '<!-- {{UI}} -->': this.getUI(),
+      '<!-- {{DesktopShortcutDirectory}} -->': this.getDesktopShortcutDirectory(),
+      '<!-- {{DesktopComponentRef}} -->': this.getDesktopComponentRef()
     };
 
     const output = await replaceToFile(this.wixTemplate, target, replacements);
@@ -435,6 +444,31 @@ export class MSICreator {
     });
 
     return { guid, componentId, xml, file };
+  }
+
+    /**
+     * Get Desktop shortcut setting
+     * @returns string
+     */
+  private getDesktopShortcutDirectory(): string {
+      if (!this.desktop) {
+        return '';
+      }
+      const xml = replaceInString(this.desktopShortcutDirectoryTemplate, {
+          '{{ApplicationBinary}}': this.exe,
+          '{{ApplicationDescription}}': this.description,
+          '{{ApplicationName}}': this.name,
+          '{{ApplicationShortcutGuid}}': uuid(),
+          '{{ApplicationShortName}}': this.shortName,
+      });
+      return xml;
+  }
+
+  private getDesktopComponentRef(): string {
+      if (!this.desktop) {
+          return '';
+      }
+      return this.desktopShortcutComponentRefTemplate;
   }
 
   /**
