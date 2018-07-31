@@ -49,7 +49,7 @@
     <DirectoryRef Id="ApplicationProgramsFolder">
       <Component Id="ApplicationShortcut" Guid="{{ApplicationShortcutGuid}}">
         <Shortcut Id="ApplicationStartMenuShortcut"
-                  Name="{{ApplicationName}}"
+                  Name="{{ApplicationAliasName}}"
                   Description="{{ApplicationDescription}}"
                   Target="[APPLICATIONROOTDIRECTORY]{{ApplicationBinary}}.exe"
                   WorkingDirectory="APPLICATIONROOTDIRECTORY">
